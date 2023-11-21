@@ -23,9 +23,9 @@ data Time = Time { hour   :: Hour
                  , second :: Second }
     deriving (Eq, Ord)
 
-newtype Hour   = Hour   { runHour   :: Int } deriving (Eq, Ord)
-newtype Minute = Minute { runMinute :: Int } deriving (Eq, Ord)
-newtype Second = Second { runSecond :: Int } deriving (Eq, Ord)
+newtype Hour   = Hour   { runHour   :: Int } deriving (Eq, Ord, Show)
+newtype Minute = Minute { runMinute :: Int } deriving (Eq, Ord, Show)
+newtype Second = Second { runSecond :: Int } deriving (Eq, Ord, Show)
 
 {- NOTE THAT THESE NAMES DO NOT PER SAY MATCH THE DATA TYPES
   datetime                          ::= date datesep time
@@ -87,7 +87,9 @@ parseTwoDigits = (+) . (*10) <$> newdigit <*> newdigit
 
 -- Exercise 2
 run :: Parser a b -> [a] -> Maybe b
-run = undefined
+run p s = case parse (many p) s of -- TODO many or some?
+        ((xs, _):_) -> Just $ last xs  -- If a non-empty list is returned, everything was parsed until there was nothing left to parse
+        _           -> Nothing  -- If an empty list is returned, this indicates failure or that there was nothing to parse
 
 -- Exercise 3
 printDateTime :: DateTime -> String
