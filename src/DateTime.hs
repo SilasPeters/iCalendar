@@ -27,7 +27,7 @@ newtype Hour   = Hour   { runHour   :: Int } deriving (Eq, Ord)
 newtype Minute = Minute { runMinute :: Int } deriving (Eq, Ord)
 newtype Second = Second { runSecond :: Int } deriving (Eq, Ord)
 
-{-
+{- NOTE THAT THESE NAMES DO NOT PER SAY MATCH THE DATA TYPES
   datetime                          ::= date datesep time
   date                              ::= year month day
   time                              ::= hour minute second timeutc
@@ -39,18 +39,18 @@ newtype Second = Second { runSecond :: Int } deriving (Eq, Ord)
  -}
 
 
--- Exercise 1 never
+-- Exercise 1 never gonna
 parseDateTime :: Parser Char DateTime
-parseDateTime = undefined
+parseDateTime = DateTime <$> parseDate <*> parseTime <*> parseTimeUtc
 
 parseDate :: Parser Char Date
-parseDate = undefined
+parseDate = Date <$> parseYear <*> parseMonth <*> parseDay
 
 parseTime :: Parser Char Time
-parseTime = undefined
+parseTime = Time <$> parseHour <*> parseMinute <*> parseSecond
 
 parseYear :: Parser Char Year
-parseYear = undefined
+parseYear = Year <$> (((+) . (*100) <$> parseTwoDigits) <*> parseTwoDigits)
 
 parseMonth :: Parser Char Month
 parseMonth = undefined
@@ -59,23 +59,13 @@ parseDay :: Parser Char Day
 parseDay = undefined
 
 parseHour :: Parser Char Hour
-parseHour = toHour <$> newdigit <*> newdigit
-    where
-        toHour d1 d2 = Hour (10*d1 + d2)
+parseHour = Hour <$> parseTwoDigits
 
 parseMinute :: Parser Char Minute
-parseMinute = toMin <$> newdigit <*> newdigit
-    where 
-        toMin d1 d2 = Minute $ twoDigits d1 d2
+parseMinute = Minute <$> parseTwoDigits
 
 parseSecond :: Parser Char Second
-parseSecond = toSec <$> newdigit <*> newdigit
-    where
-        toSec d1 = Second . twoDigits d1
-
--- | takes two digits and converts them to an int
-twoDigits :: Int -> Int -> Int
-twoDigits d1 d2 = 10*d1 + d2
+parseSecond = Second <$> parseTwoDigits
 
 parseTimeUtc :: Parser Char Bool
 parseTimeUtc = toUtc <$> option (symbol 'Z') 'N'
@@ -85,11 +75,15 @@ parseTimeUtc = toUtc <$> option (symbol 'Z') 'N'
 
 -- | waar is dit voor?
 parseDigit :: Parser Char Char
-parseDigit = undefined
+parseDigit = digit -- TODO we don't use this?
 
-parseDateSep :: Parser a Char
-parseDateSep = undefined
+parseDateSep :: Parser Char Char
+parseDateSep = symbol 'T'
 
+
+
+parseTwoDigits :: Parser Char Int
+parseTwoDigits = (+) . (*10) <$> newdigit <*> newdigit
 
 -- Exercise 2
 run :: Parser a b -> [a] -> Maybe b
