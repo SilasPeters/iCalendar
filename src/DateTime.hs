@@ -77,11 +77,9 @@ parseDateSep :: Parser Char Char
 parseDateSep = symbol 'T'
 
 
-twoDigits :: Int -> Int -> Int
-twoDigits d1 d2 = 10*d1 + d2
 
 parseTwoDigits :: Parser Char Int
-parseTwoDigits = twoDigits <$> newdigit <*> newdigit
+parseTwoDigits = (+) . (*10) <$> newdigit <*> newdigit
 
 -- Exercise 2
 run :: Parser a b -> [a] -> Maybe b
