@@ -43,7 +43,6 @@ newtype Second = Second { runSecond :: Int } deriving (Eq, Ord)
 parseDateTime :: Parser Char DateTime
 parseDateTime = undefined
 
-
 parseDate :: Parser Char Date
 parseDate = undefined
 
@@ -64,7 +63,20 @@ parseHour = toHour <$> newdigit <*> newdigit
     where
         toHour d1 d2 = Hour (10*d1 + d2)
 
-parseTimeUtc :: Parser Char Char
+parseMinute :: Parser Char Minute
+parseMinute = toMin <$> newdigit <*> newdigit
+    where 
+        toMin d1 d2 = Minute $ twoDigits d1 d2
+
+parseSecond :: Parser Char Second
+parseSecond = toSec <$> newdigit <*> newdigit
+    where
+        toSec d1 d2 = Second $ twoDigits d1 d2
+
+twoDigits :: Int -> Int -> Int
+twoDigits d1 d2 = 10*d1 + d2
+
+parseTimeUtc :: Parser Char (Maybe Char)
 parseTimeUtc = undefined
 
 parseDigit :: Parser Char Char
