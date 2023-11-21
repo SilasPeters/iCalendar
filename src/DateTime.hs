@@ -32,13 +32,13 @@ newtype Second = Second { runSecond :: Int } deriving (Eq, Ord)
 parseDateTime :: Parser Char DateTime
 parseDateTime = undefined
 
-parseHour :: Parser Hour
+parseHour :: Parser Char Hour
 parseHour = undefined
 
-parseDate :: Parser Date
+parseDate :: Parser Char Date
 parseDate = undefined
 
-parseTime :: Parser Time
+parseTime :: Parser Char Time
 parseTime = undefined
 
 -- Exercise 2
