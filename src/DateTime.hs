@@ -28,12 +28,14 @@ newtype Minute = Minute { runMinute :: Int } deriving (Eq, Ord)
 newtype Second = Second { runSecond :: Int } deriving (Eq, Ord)
 
 
--- Exercise 1
+-- Exercise 1 never
 parseDateTime :: Parser Char DateTime
 parseDateTime = undefined
 
-parseHour :: Parser Char Hour
-parseHour = undefined
+parseHour :: Parser Char Hour 
+parseHour = toHour <$> newdigit <*> newdigit
+    where
+        toHour d1 d2 = Hour (10*d1 + d2)
 
 parseDate :: Parser Char Date
 parseDate = undefined
