@@ -27,21 +27,52 @@ newtype Hour   = Hour   { runHour   :: Int } deriving (Eq, Ord)
 newtype Minute = Minute { runMinute :: Int } deriving (Eq, Ord)
 newtype Second = Second { runSecond :: Int } deriving (Eq, Ord)
 
+{-
+  datetime                          ::= date datesep time
+  date                              ::= year month day
+  time                              ::= hour minute second timeutc
+  year                              ::= digit digit digit digit
+  month, day, hour , minute, second ::= digit digit
+  timeutc                           ::= ε | Z
+  digit                             ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+  datesep                           ::= T
+ -}
+
 
 -- Exercise 1 never
 parseDateTime :: Parser Char DateTime
 parseDateTime = undefined
 
-parseHour :: Parser Char Hour 
-parseHour = toHour <$> newdigit <*> newdigit
-    where
-        toHour d1 d2 = Hour (10*d1 + d2)
 
 parseDate :: Parser Char Date
 parseDate = undefined
 
 parseTime :: Parser Char Time
 parseTime = undefined
+
+parseYear :: Parser Char Year
+parseYear = undefined
+
+parseMonth :: Parser Char Month
+parseMonth = undefined
+
+parseDay :: Parser Char Day
+parseDay = undefined
+
+parseHour :: Parser Char Hour
+parseHour = toHour <$> newdigit <*> newdigit
+    where
+        toHour d1 d2 = Hour (10*d1 + d2)
+
+parseTimeUtc :: Parser Char Char
+parseTimeUtc = undefined
+
+parseDigit :: Parser Char Char
+parseDigit = undefined
+
+parseDateSep :: Parser a Char
+parseDateSep = undefined
+
 
 -- Exercise 2
 run :: Parser a b -> [a] -> Maybe b
