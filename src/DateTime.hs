@@ -71,14 +71,19 @@ parseMinute = toMin <$> newdigit <*> newdigit
 parseSecond :: Parser Char Second
 parseSecond = toSec <$> newdigit <*> newdigit
     where
-        toSec d1 d2 = Second $ twoDigits d1 d2
+        toSec d1 = Second . twoDigits d1
 
+-- | takes two digits and converts them to an int
 twoDigits :: Int -> Int -> Int
 twoDigits d1 d2 = 10*d1 + d2
 
-parseTimeUtc :: Parser Char (Maybe Char)
-parseTimeUtc = undefined
+parseTimeUtc :: Parser Char Bool
+parseTimeUtc = toUtc <$> option (symbol 'Z') 'N'
+    where
+        toUtc 'Z' = True
+        toUtc 'N' = False
 
+-- | waar is dit voor?
 parseDigit :: Parser Char Char
 parseDigit = undefined
 
