@@ -32,6 +32,15 @@ newtype Second = Second { runSecond :: Int } deriving (Eq, Ord)
 parseDateTime :: Parser Char DateTime
 parseDateTime = undefined
 
+parseHour :: Parser Char Hour
+parseHour = undefined
+
+parseDate :: Parser Char Date
+parseDate = undefined
+
+parseTime :: Parser Char Time
+parseTime = undefined
+
 -- Exercise 2
 run :: Parser a b -> [a] -> Maybe b
 run = undefined
