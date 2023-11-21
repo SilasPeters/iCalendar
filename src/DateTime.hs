@@ -41,10 +41,10 @@ newtype Second = Second { runSecond :: Int } deriving (Eq, Ord)
 
 -- Exercise 1 never
 parseDateTime :: Parser Char DateTime
-parseDateTime = undefined
+parseDateTime = DateTime <$> parseDate <*> parseTime <*> parseTimeUtc
 
 parseDate :: Parser Char Date
-parseDate = undefined
+parseDate = Date <$> parseYear <*> parseMonth <*> parseDay
 
 parseTime :: Parser Char Time
 parseTime = undefined
@@ -73,17 +73,18 @@ parseSecond = toSec <$> newdigit <*> newdigit
     where
         toSec d1 d2 = Second $ twoDigits d1 d2
 
-twoDigits :: Int -> Int -> Int
-twoDigits d1 d2 = 10*d1 + d2
-
-parseTimeUtc :: Parser Char (Maybe Char)
-parseTimeUtc = undefined
+parseTimeUtc :: Parser Char Bool
+parseTimeUtc = (== 'Z') <$> symbol 'Z'
 
 parseDigit :: Parser Char Char
-parseDigit = undefined
+parseDigit = digit
 
-parseDateSep :: Parser a Char
-parseDateSep = undefined
+parseDateSep :: Parser Char Char
+parseDateSep = symbol 'T'
+
+
+twoDigits :: Int -> Int -> Int
+twoDigits d1 d2 = 10*d1 + d2
 
 
 -- Exercise 2
