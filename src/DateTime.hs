@@ -14,9 +14,9 @@ data Date = Date { year  :: Year
                  , day   :: Day }
     deriving (Eq, Ord)
 
-newtype Year  = Year  { runYear  :: Int } deriving (Eq, Ord)
-newtype Month = Month { runMonth :: Int } deriving (Eq, Ord)
-newtype Day   = Day   { runDay   :: Int } deriving (Eq, Ord)
+newtype Year  = Year  { runYear  :: Int } deriving (Eq, Ord, Show)
+newtype Month = Month { runMonth :: Int } deriving (Eq, Ord, Show)
+newtype Day   = Day   { runDay   :: Int } deriving (Eq, Ord, Show)
 
 data Time = Time { hour   :: Hour
                  , minute :: Minute
@@ -91,7 +91,7 @@ parseTwoDigits = do
 
 -- Exercise 2
 run :: Parser a b -> [a] -> Maybe b
-run p s = case parse (many p) s of -- TODO many or some?
+run p s = case parse (some p) s of
         ((xs, _):_) -> Just $ last xs  -- If a non-empty list is returned, everything was parsed until there was nothing left to parse
         _           -> Nothing  -- If an empty list is returned, this indicates failure or that there was nothing to parse
 
