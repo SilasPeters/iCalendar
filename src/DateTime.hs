@@ -8,25 +8,35 @@ import Data.Foldable
 data DateTime = DateTime { date :: Date
                          , time :: Time
                          , utc  :: Bool }
-    deriving (Eq, Ord, Show)
+    deriving (Eq, Ord)
+instance Show DateTime where show dt = show (date dt) ++ "T" ++ show (time dt) ++ if utc dt then "Z" else ""
 
 data Date = Date { year  :: Year
                  , month :: Month
                  , day   :: Day }
-    deriving (Eq, Ord, Show)
+    deriving (Eq, Ord)
+instance Show Date where show d = show (year d) ++ show (month d) ++ show (day d)
 
-newtype Year  = Year  { runYear  :: Int } deriving (Eq, Ord, Show)
-newtype Month = Month { runMonth :: Int } deriving (Eq, Ord, Show)
-newtype Day   = Day   { runDay   :: Int } deriving (Eq, Ord, Show)
+newtype Year  = Year  { runYear  :: Int } deriving (Eq, Ord)
+newtype Month = Month { runMonth :: Int } deriving (Eq, Ord)
+newtype Day   = Day   { runDay   :: Int } deriving (Eq, Ord)
+instance Show Year where show = show.runYear
+instance Show Month where show = show.runMonth
+instance Show Day where show = show.runDay
 
 data Time = Time { hour   :: Hour
                  , minute :: Minute
                  , second :: Second }
-    deriving (Eq, Ord, Show)
+    deriving (Eq, Ord)
+instance Show Time where show t = show (hour t) ++ show (minute t) ++ show (second t)
 
-newtype Hour   = Hour   { runHour   :: Int } deriving (Eq, Ord, Show)
-newtype Minute = Minute { runMinute :: Int } deriving (Eq, Ord, Show)
-newtype Second = Second { runSecond :: Int } deriving (Eq, Ord, Show)
+newtype Hour   = Hour   { runHour   :: Int } deriving (Eq, Ord)
+newtype Minute = Minute { runMinute :: Int } deriving (Eq, Ord)
+newtype Second = Second { runSecond :: Int } deriving (Eq, Ord)
+instance Show Hour where show = show.runHour
+instance Show Minute where show = show.runMinute
+instance Show Second where show = show.runSecond
+
 
 {- NOTE THAT THESE NAMES DO NOT PER SAY MATCH THE DATA TYPES
   datetime                          ::= date datesep time
@@ -51,7 +61,7 @@ parseTime :: Parser Char Time
 parseTime = Time <$> parseHour <*> parseMinute <*> parseSecond
 
 parseYear :: Parser Char Year
-parseYear = Year <$> (((+) . (*100) <$> parseTwoDigits) <*> parseTwoDigits)
+parseYear = Year <$> ((+) . (*100) <$> parseTwoDigits <*> parseTwoDigits)
 
 parseMonth :: Parser Char Month
 parseMonth = Month <$> parseTwoDigits
@@ -101,10 +111,10 @@ run p as = mayfst $ find (null.snd) $ parse p as
 
 -- Exercise 3
 printDateTime :: DateTime -> String
-printDateTime = undefined
+printDateTime = show
 
 -- Exercise 4
-parsePrint s = fmap printDateTime $ run parseDateTime s
+parsePrint s = printDateTime <$> run parseDateTime s
 
 -- Exercise 5
 checkDateTime :: DateTime -> Bool
