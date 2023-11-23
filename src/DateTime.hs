@@ -2,6 +2,7 @@ module DateTime where
 
 import ParseLib.Abstract
 import Prelude hiding ((<$), ($>), (<*), (*>), sequence)
+import Data.Foldable
 
 -- | "Target" datatype for the DateTime parser, i.e, the parser should produce elements of this type.
 data DateTime = DateTime { date :: Date
@@ -41,7 +42,7 @@ newtype Second = Second { runSecond :: Int } deriving (Eq, Ord, Show)
 
 -- Exercise 1 never gonna
 parseDateTime :: Parser Char DateTime
-parseDateTime = DateTime <$> parseDate <*> parseTime <*> parseTimeUtc
+parseDateTime = DateTime <$> parseDate <* symbol 'T' <*> parseTime <*> parseTimeUtc
 
 parseDate :: Parser Char Date
 parseDate = Date <$> parseYear <*> parseMonth <*> parseDay
@@ -84,9 +85,17 @@ parseTwoDigits = do
 
 -- Exercise 2
 run :: Parser a b -> [a] -> Maybe b
-run p s = case parse (some p) s of
-        ((xs, _):_) -> Just $ last xs  -- If a non-empty list is returned, everything was parsed until there was nothing left to parse
-        _           -> Nothing  -- If an empty list is returned, this indicates failure or that there was nothing to parse
+run p as = mayfst $ find (null.snd) $ parse p as
+    where
+        mayfst Nothing = Nothing
+        mayfst (Just (a,_)) = Just a
+
+
+
+--run :: Parser a b -> [a] -> Maybe b
+--run p s = case parse (some p) s of
+--        ((xs, _):_) -> Just $ last xs  -- If a non-empty list is returned, everything was parsed until there was nothing left to parse
+--        _           -> Nothing  -- If an empty list is returned, this indicates failure or that there was nothing to parse
 
 
 
