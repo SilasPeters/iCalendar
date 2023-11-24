@@ -118,4 +118,30 @@ parsePrint s = printDateTime <$> run parseDateTime s
 
 -- Exercise 5
 checkDateTime :: DateTime -> Bool
-checkDateTime = undefined
+checkDateTime dt = undefined
+
+checkTime :: Time -> Bool
+checkTime t = runHour(hour t) < 13 && runMinute (minute t) < 60 && runSecond(second t) < 60
+
+checkDate :: Date -> Bool
+checkDate date = case runDay(day date) of 
+    d ->  case runMonth(month date) of
+        1 -> d < 32
+        2 -> d < 30
+        3 -> d < 32
+        4 -> d < 31
+        5 -> d < 32
+        6 -> d < 31
+        7 -> d < 32
+        8 -> d < 32
+        9 -> d < 31
+        10 -> d < 32
+        11 -> d < 31
+        12 -> d < 32
+        _ -> False
+
+
+
+
+
+
