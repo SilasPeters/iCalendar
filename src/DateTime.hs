@@ -93,11 +93,7 @@ parseInt n = foldl1 ((+) . (*10)) <$> parseNDigits n
 
 -- Exercise 2
 run :: Parser a b -> [a] -> Maybe b
-run p as = mayfst $ find (null.snd) $ parse p as
-    where
-        mayfst Nothing = Nothing
-        mayfst (Just (a,_)) = Just a
-
+run p as = fst <$> find (null . snd) (parse p as)
 
 
 --run :: Parser a b -> [a] -> Maybe b

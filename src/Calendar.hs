@@ -5,6 +5,29 @@ import Prelude hiding ((<$), ($>), (<*), (*>), sequence)
 import DateTime
 
 
+{-
+  event       ::= BEGIN:VEVENT crlf
+                eventprop∗
+                END:VEVENT crlf
+  eventprop   ::= dtstamp | uid | dtstart | dtend | description | summary | location
+  dtstamp     ::= DTSTAMP:     datetime crlf
+  uid         ::= UID:         text     crlf
+  dtstart     ::= DTSTART:     datetime crlf
+  dtend       ::= DTEND:       datetime crlf
+  description ::= DESCRIPTION: text     crlf
+  summary     ::= SUMMARY:     text     crlf
+  location    ::= LOCATION:    text     crlf
+
+
+  calendar ::= BEGIN:VCALENDAR crlf
+               calprop∗
+               event∗
+               END:VCALENDAR crlf
+  calprop  ::= prodid | version
+  prodid   ::= PRODID: text crlf
+  version  ::= VERSION:2.0 crlf
+-}
+
 -- Exercise 6
 data Calendar = Calendar
     deriving (Eq, Ord, Show)
