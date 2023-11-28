@@ -80,7 +80,7 @@ parseSecond :: Parser Char Second
 parseSecond = Second <$> parseInt 2
 
 parseTimeUtc :: Parser Char Bool
-parseTimeUtc = (== 'Z') <$> option (symbol 'Z') 'N'
+parseTimeUtc = True <$ symbol 'Z'
 
 parseDateSep :: Parser Char Char
 parseDateSep = symbol 'T'
