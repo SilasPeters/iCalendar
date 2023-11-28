@@ -3,6 +3,7 @@ module DateTime where
 import ParseLib.Abstract
 import Prelude hiding ((<$), ($>), (<*), (*>), sequence)
 import Data.Foldable
+import Control.Monad ( replicateM )
 
 -- | "Target" datatype for the DateTime parser, i.e, the parser should produce elements of this type.
 data DateTime = DateTime { date :: Date
@@ -50,7 +51,7 @@ instance Show Second where show = show.runSecond
  -}
 
 
--- Exercise 1 never gonna
+-- Exercise 1 never gonna give
 parseDateTime :: Parser Char DateTime
 parseDateTime = DateTime <$> parseDate <* symbol 'T' <*> parseTime <*> parseTimeUtc
 
@@ -61,22 +62,22 @@ parseTime :: Parser Char Time
 parseTime = Time <$> parseHour <*> parseMinute <*> parseSecond
 
 parseYear :: Parser Char Year
-parseYear = Year <$> ((+) . (*100) <$> parseTwoDigits <*> parseTwoDigits)
+parseYear = Year <$> parseInt 4
 
 parseMonth :: Parser Char Month
-parseMonth = Month <$> parseTwoDigits
+parseMonth = Month <$> parseInt 2
 
 parseDay :: Parser Char Day
-parseDay = Day <$> parseTwoDigits
+parseDay = Day <$> parseInt 2
 
 parseHour :: Parser Char Hour
-parseHour = Hour <$> parseTwoDigits
+parseHour = Hour <$> parseInt 2
 
 parseMinute :: Parser Char Minute
-parseMinute = Minute <$> parseTwoDigits
+parseMinute = Minute <$> parseInt 2
 
 parseSecond :: Parser Char Second
-parseSecond = Second <$> parseTwoDigits
+parseSecond = Second <$> parseInt 2
 
 parseTimeUtc :: Parser Char Bool
 parseTimeUtc = (== 'Z') <$> option (symbol 'Z') 'N'
@@ -84,14 +85,11 @@ parseTimeUtc = (== 'Z') <$> option (symbol 'Z') 'N'
 parseDateSep :: Parser Char Char
 parseDateSep = symbol 'T'
 
+parseNDigits :: Int -> Parser Char [Int]
+parseNDigits = flip replicateM newdigit
 
-
-parseTwoDigits :: Parser Char Int
---parseTwoDigits = (+) . (*10) <$> newdigit <*> newdigit
-parseTwoDigits = do
-    base10 <- newdigit
-    base1  <- newdigit
-    return $ base10 * 10 + base1
+parseInt :: Int -> Parser Char Int
+parseInt n = foldl1 ((+) . (*10)) <$> parseNDigits n
 
 -- Exercise 2
 run :: Parser a b -> [a] -> Maybe b
