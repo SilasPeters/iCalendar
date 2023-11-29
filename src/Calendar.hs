@@ -60,8 +60,7 @@ newtype Location    = Location Text    deriving (Eq, Ord, Show)
 newtype Text = Text String deriving (Eq, Ord, Show)
 
 -- Exercise 7
-data Token = Token
-    deriving (Eq, Ord, Show)
+newtype Token = Token String deriving (Eq, Ord, Show)
 
 scanCalendar :: Parser Char [Token]
 scanCalendar = undefined
