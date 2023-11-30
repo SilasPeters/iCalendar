@@ -3,6 +3,9 @@ module Calendar where
 import ParseLib.Abstract
 import Prelude hiding ((<$), ($>), (<*), (*>), sequence)
 import DateTime
+import GHC.IO.Encoding (BufferCodec(setState))
+import Data.Char (isUpper, isLetter)
+--import qualified Data.List as words
 
 
 {-
@@ -36,22 +39,22 @@ data Calendar = Calendar { getProdId :: ProdId
 
 newtype ProdId = ProdId String deriving (Eq, Ord, Show)
 
-data Event = Event { getDtStamp     :: DateTime    
-                   , getUid         :: String      
-                   , getDtStart     :: DateTime    
-                   , getDtEnd       :: DateTime    
+data Event = Event { getDtStamp     :: DateTime
+                   , getUid         :: String
+                   , getDtStart     :: DateTime
+                   , getDtEnd       :: DateTime
                    , getDescription :: Maybe String
                    , getSummary     :: Maybe String
                    , getLocation    :: Maybe String }
     deriving (Eq, Ord, Show)
 
-data Property =      DtStamp      DateTime       
-                   | Uid          String         
-                   | DtStart      DateTime       
-                   | DtEnd        DateTime       
-                   | Description  String         
-                   | Summary      String         
-                   | Location     String 
+data Property =      DtStamp      DateTime
+                   | Uid          String
+                   | DtStart      DateTime
+                   | DtEnd        DateTime
+                   | Description  String
+                   | Summary      String
+                   | Location     String
 
 --
 ---- Define newtype's to enforce type checks --huh, waarom zou je niet gewoon DateTime & txt kunnen gebruiken?
@@ -69,22 +72,47 @@ data Property =      DtStamp      DateTime
 --newtype Text = Text String deriving (Eq, Ord, Show)
 
 -- Exercise 7
-newtype Token = Token String deriving (Eq, Ord, Show)
+data Token = Value String | Prop String | DT DateTime deriving (Eq, Ord, Show)
 
-scanCalender :: Parser Char [Token]
-scanCalender =  map Token . filter (not.null) .words <$> many anySymbol
+scanCalendar :: Parser Char [Token]
+scanCalendar = foldr plop [] <$> many parseToken
+
+testScanCalendar :: IO()
+testScanCalendar = do
+  tekst <- readFile "examples//multiline.ics"
+  print $ run scanCalendar tekst
+  return ()
+
+parseToken :: Parser Char Token
+parseToken = choice [parseProp, DT <$> parseDateTime <* token "\n", parseValue]
+
+plop :: Token -> [Token] -> [Token]
+plop v1@(Value s1) (v2@(Value (' ':s2)):ts) = Value (s1++s2) : ts
+plop t ts = t:ts
+
+parseValue :: Parser Char Token
+parseValue = Value <$> some (satisfy (/= '\n')) <* token "\n" 
+
+parseProp :: Parser Char Token
+parseProp = Prop <$> many (satisfy isUpper) <* symbol ':'
+
+
+
 
 parseCalendar :: Parser Token Calendar
 parseCalendar = undefined
 
 parseEvent:: Parser Token Event
-parseEvent = undefined
+parseEvent = listToEvent <$> many parseProperty
+
+parseProperty :: Parser Token Property
+parseProperty = undefined
 
 listToEvent:: [Property] -> Event
 listToEvent ps = undefined
 
 recognizeCalendar :: String -> Maybe Calendar
-recognizeCalendar s = run scanCalender s >>= run parseCalendar
+recognizeCalendar s = run scanCalendar s >>= run parseCalendar
 
 -- Exercise 8
 printCalendar :: Calendar -> String
