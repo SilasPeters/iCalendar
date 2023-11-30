@@ -134,7 +134,9 @@ data CalProp =  ProdId String | Version String
 testParseEvent = run parseEvent
 
 parseEvent:: Parser Token Event
-parseEvent = listToEvent <$ symbol (Prop "Start") <* symbol (Value "VEVENT") <*> many parseProperty <* symbol (Prop "End") <* symbol (Value "VEVENT")
+parseEvent = listToEvent <$ symbol (Prop "Start") <* symbol (Value "VEVENT") 
+                         <*> many parseProperty 
+                         <* symbol (Prop "End") <* symbol (Value "VEVENT")
 
 data Property =      DtStamp      DateTime
                    | Uid          String
