@@ -18,12 +18,15 @@ data Date = Date { year  :: Year
     deriving (Eq, Ord)
 instance Show Date where show d = show (year d) ++ show (month d) ++ show (day d)
 
+makeLength :: Int -> String -> String
+makeLength n s = replicate (n - length s) '0' ++ s
+
 newtype Year  = Year  { runYear  :: Int } deriving (Eq, Ord)
 newtype Month = Month { runMonth :: Int } deriving (Eq, Ord)
 newtype Day   = Day   { runDay   :: Int } deriving (Eq, Ord)
-instance Show Year where show = show.runYear
-instance Show Month where show = show.runMonth
-instance Show Day where show = show.runDay
+instance Show Year where show = makeLength 4.show.runYear
+instance Show Month where show = makeLength 2.show.runMonth
+instance Show Day where show = makeLength 2.show.runDay
 
 data Time = Time { hour   :: Hour
                  , minute :: Minute
@@ -34,9 +37,9 @@ instance Show Time where show t = show (hour t) ++ show (minute t) ++ show (seco
 newtype Hour   = Hour   { runHour   :: Int } deriving (Eq, Ord)
 newtype Minute = Minute { runMinute :: Int } deriving (Eq, Ord)
 newtype Second = Second { runSecond :: Int } deriving (Eq, Ord)
-instance Show Hour where show = show.runHour
-instance Show Minute where show = show.runMinute
-instance Show Second where show = show.runSecond
+instance Show Hour where show = makeLength 2.show.runHour
+instance Show Minute where show = makeLength 2.show.runMinute
+instance Show Second where show = makeLength 2.show.runSecond
 
 
 {- NOTE THAT THESE NAMES DO NOT PER SAY MATCH THE DATA TYPES

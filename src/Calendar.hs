@@ -4,7 +4,7 @@ import ParseLib.Abstract
 import Prelude hiding ((<$), ($>), (<*), (*>), sequence)
 import DateTime
 
-
+ 
 {-
   event       ::= BEGIN:VEVENT crlf
                 eventprop∗
@@ -34,25 +34,25 @@ data Calendar = Calendar { getProdId :: ProdId
                          , getEvents :: [Event]}
     deriving (Eq, Ord, Show)
 
-newtype ProdId = ProdId String deriving (Eq, Ord, Show)
+newtype ProdId = ProdId Text deriving (Eq, Ord, Show)
 
-data Event = Event { getDtStamp     :: DtStamp
-                   , getUid         :: Uid
-                   , getDtStart     :: DtStart
-                   , getDtEnd       :: DtEnd
-                   , getDescription :: Maybe Description
-                   , getSummary     :: Maybe Summary
-                   , getLocation    :: Maybe Location }
+data Event = Event { getDtStamp     :: DtStamp          --DateTime
+                   , getUid         :: Uid              --txt
+                   , getDtStart     :: DtStart          --DateTime
+                   , getDtEnd       :: DtEnd            --DateTime
+                   , getDescription :: Maybe Description--txt
+                   , getSummary     :: Maybe Summary    --txt
+                   , getLocation    :: Maybe Location } --txt
     deriving (Eq, Ord, Show)
 
--- Define newtype's to enforce type checks
-newtype DtStamp     = DtStamp DateTime   deriving (Eq, Ord, Show)
-newtype Uid         = Uid String         deriving (Eq, Ord, Show)
-newtype DtStart     = DtStart DateTime   deriving (Eq, Ord, Show)
-newtype DtEnd       = DtEnd DateTime     deriving (Eq, Ord, Show)
-newtype Description = Description String deriving (Eq, Ord, Show)
-newtype Summary     = Summary String     deriving (Eq, Ord, Show)
-newtype Location    = Location String    deriving (Eq, Ord, Show)
+-- Define newtype's to enforce type checks --huh, waarom zou je niet gewoon DateTime & txt kunnen gebruiken?
+newtype DtStamp     = DtStamp DateTime deriving (Eq, Ord, Show)
+newtype Uid         = Uid Text         deriving (Eq, Ord, Show)
+newtype DtStart     = DtStart DateTime deriving (Eq, Ord, Show)
+newtype DtEnd       = DtEnd DateTime   deriving (Eq, Ord, Show)
+newtype Description = Description Text deriving (Eq, Ord, Show)
+newtype Summary     = Summary Text     deriving (Eq, Ord, Show)
+newtype Location    = Location Text    deriving (Eq, Ord, Show)
 
 -- Since 'text' is not just a string, we would like to enforce a typecheck
 -- This way, when we define functions which are only intended for 'text's,
@@ -63,7 +63,7 @@ newtype Text = Text String deriving (Eq, Ord, Show)
 newtype Token = Token String deriving (Eq, Ord, Show)
 
 scanCalendar :: Parser Char [Token]
-scanCalendar = undefined
+scanCalendar = undefined 
 
 parseCalendar :: Parser Token Calendar
 parseCalendar = undefined
