@@ -4,7 +4,7 @@ import ParseLib.Abstract
 import Prelude hiding ((<$), ($>), (<*), (*>), sequence)
 import DateTime
 
- 
+
 {-
   event       ::= BEGIN:VEVENT crlf
                 eventprop∗
@@ -62,8 +62,13 @@ newtype Text = Text String deriving (Eq, Ord, Show)
 -- Exercise 7
 newtype Token = Token String deriving (Eq, Ord, Show)
 
+filled:: Token -> Bool
+filled (Token s) = not (null s)
+
 scanCalendar :: Parser Char [Token]
-scanCalendar = undefined 
+scanCalendar = filter filled . map Token . words <$> identifier
+
+
 
 parseCalendar :: Parser Token Calendar
 parseCalendar = undefined
