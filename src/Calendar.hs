@@ -34,44 +34,54 @@ data Calendar = Calendar { getProdId :: ProdId
                          , getEvents :: [Event]}
     deriving (Eq, Ord, Show)
 
-newtype ProdId = ProdId Text deriving (Eq, Ord, Show)
+newtype ProdId = ProdId String deriving (Eq, Ord, Show)
 
-data Event = Event { getDtStamp     :: DtStamp          --DateTime
-                   , getUid         :: Uid              --txt
-                   , getDtStart     :: DtStart          --DateTime
-                   , getDtEnd       :: DtEnd            --DateTime
-                   , getDescription :: Maybe Description--txt
-                   , getSummary     :: Maybe Summary    --txt
-                   , getLocation    :: Maybe Location } --txt
+data Event = Event { getDtStamp     :: DateTime    
+                   , getUid         :: String      
+                   , getDtStart     :: DateTime    
+                   , getDtEnd       :: DateTime    
+                   , getDescription :: Maybe String
+                   , getSummary     :: Maybe String
+                   , getLocation    :: Maybe String }
     deriving (Eq, Ord, Show)
 
--- Define newtype's to enforce type checks --huh, waarom zou je niet gewoon DateTime & txt kunnen gebruiken?
-newtype DtStamp     = DtStamp DateTime deriving (Eq, Ord, Show)
-newtype Uid         = Uid Text         deriving (Eq, Ord, Show)
-newtype DtStart     = DtStart DateTime deriving (Eq, Ord, Show)
-newtype DtEnd       = DtEnd DateTime   deriving (Eq, Ord, Show)
-newtype Description = Description Text deriving (Eq, Ord, Show)
-newtype Summary     = Summary Text     deriving (Eq, Ord, Show)
-newtype Location    = Location Text    deriving (Eq, Ord, Show)
+data Property =      DtStamp      DateTime       
+                   | Uid          String         
+                   | DtStart      DateTime       
+                   | DtEnd        DateTime       
+                   | Description  String         
+                   | Summary      String         
+                   | Location     String 
+
+--
+---- Define newtype's to enforce type checks --huh, waarom zou je niet gewoon DateTime & txt kunnen gebruiken?
+--newtype DtStamp     = DtStamp DateTime   deriving (Eq, Ord, Show)
+--newtype Uid         = Uid String         deriving (Eq, Ord, Show)
+--newtype DtStart     = DtStart DateTime   deriving (Eq, Ord, Show)
+--newtype DtEnd       = DtEnd DateTime     deriving (Eq, Ord, Show)
+--newtype Description = Description String deriving (Eq, Ord, Show)
+--newtype Summary     = Summary String     deriving (Eq, Ord, Show)
+--newtype Location    = Location String    deriving (Eq, Ord, Show)
 
 -- Since 'text' is not just a string, we would like to enforce a typecheck
 -- This way, when we define functions which are only intended for 'text's,
 -- we can require a Text to be provided instead of a context-dependend String
-newtype Text = Text String deriving (Eq, Ord, Show)
+--newtype Text = Text String deriving (Eq, Ord, Show)
 
 -- Exercise 7
 newtype Token = Token String deriving (Eq, Ord, Show)
 
-filled:: Token -> Bool
-filled (Token s) = not (null s)
-
 scanCalender :: Parser Char [Token]
-scanCalender = filter filled . map Token . words <$> many anySymbol
-
-
+scanCalender =  map Token . filter (not.null) .words <$> many anySymbol
 
 parseCalendar :: Parser Token Calendar
 parseCalendar = undefined
+
+parseEvent:: Parser Token Event
+parseEvent = undefined
+
+listToEvent:: [Property] -> Event
+listToEvent ps = undefined
 
 recognizeCalendar :: String -> Maybe Calendar
 recognizeCalendar s = run scanCalender s >>= run parseCalendar
