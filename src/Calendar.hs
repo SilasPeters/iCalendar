@@ -7,6 +7,7 @@ import GHC.IO.Encoding (BufferCodec(setState))
 import Data.Char (isUpper, isLetter)
 import Data.Functor.Contravariant (Predicate(getPredicate))
 import Data.Maybe
+import qualified GHC.TypeLits as niet
 
 --import qualified Data.List as words
 
@@ -131,8 +132,12 @@ parseCalProp  = choice [
 
 data CalProp =  ProdId String | Version String
 
-testParseEvent = run parseEvent
+--mag ooit weg, als het werkt
+testParseEvent :: [Char] -> Maybe Event 
+testParseEvent txt= run parseEvent $ fromJust $ run scanCalendar txt
 
+-- hier werkt het niet.
+-- TEST           testScan "START:VEVENT\nUID:lol\nEND:VEVENT\n"      -> Nothing      het scannen lijkt te werken      ghci> testScan -> "START:VEVENT\nUID:lol\nEND:VEVENT\n"Just [Prop "START",Value "VEVENT",Prop "UID",Value "lol",Prop "END",Value "VEVENT"]
 parseEvent:: Parser Token Event
 parseEvent = listToEvent <$ symbol (Prop "Start") <* symbol (Value "VEVENT") 
                          <*> many parseProperty 
