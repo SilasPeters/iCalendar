@@ -71,7 +71,7 @@ data Token = Value String | Prop String | DT DateTime deriving (Eq, Ord, Show)
 
 
 
-
+-- werkt alleen als eindigs op \n
 scanCalendar :: Parser Char [Token]
 scanCalendar = foldr insertToken [] <$> many parseToken
 
@@ -80,6 +80,9 @@ testScanCalendar = do
   tekst <- readFile "examples//multiline.ics"
   print $ run scanCalendar tekst
   return ()
+
+
+testScan tekst = run scanCalendar tekst
 
 parseToken :: Parser Char Token
 parseToken = choice [parseProp, DT <$> parseDateTime <* token "\n", parseValue]
@@ -128,8 +131,10 @@ parseCalProp  = choice [
 
 data CalProp =  ProdId String | Version String
 
+testParseEvent = run parseEvent
+
 parseEvent:: Parser Token Event
-parseEvent = listToEvent <$> many parseProperty
+parseEvent = listToEvent <$ symbol (Prop "Start") <* symbol (Value "VEVENT") <*> many parseProperty <* symbol (Prop "End") <* symbol (Value "VEVENT")
 
 data Property =      DtStamp      DateTime
                    | Uid          String
@@ -137,7 +142,7 @@ data Property =      DtStamp      DateTime
                    | DtEnd        DateTime
                    | Description  String
                    | Summary      String
-                   | Location     String
+                   | Location     String deriving(Show)
 
 isValue :: Token -> Bool
 isValue (Value _) = True
@@ -153,7 +158,12 @@ getString (Value s) = s
 getDate :: Token -> DateTime
 getDate (DT dt) = dt
 
---mogelijk niet compleet
+
+
+testparseProperty tekst = fromJust $ run scanCalendar tekst
+
+--mogelijk niet compleet, 
+--werkt op UID "testparseProperty "UID:lol\n" -> [Prop "UID",Value "lol"]
 parseProperty :: Parser Token Property
 parseProperty = choice [
    Uid . getString <$ symbol (Prop "UID") <*> satisfy isValue
