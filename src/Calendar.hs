@@ -65,8 +65,8 @@ newtype Token = Token String deriving (Eq, Ord, Show)
 filled:: Token -> Bool
 filled (Token s) = not (null s)
 
-scanCalendar :: Parser Char [Token]
-scanCalendar = filter filled . map Token . words <$> identifier
+scanCalender :: Parser Char [Token]
+scanCalender = filter filled . map Token . words <$> many anySymbol
 
 
 
@@ -74,7 +74,7 @@ parseCalendar :: Parser Token Calendar
 parseCalendar = undefined
 
 recognizeCalendar :: String -> Maybe Calendar
-recognizeCalendar s = run scanCalendar s >>= run parseCalendar
+recognizeCalendar s = run scanCalender s >>= run parseCalendar
 
 -- Exercise 8
 printCalendar :: Calendar -> String
