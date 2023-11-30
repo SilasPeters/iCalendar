@@ -104,7 +104,7 @@ testparseCalendar = do
   return ()
 
 parseCalendar :: Parser Token Calendar
-parseCalendar = toCal <$ symbol (Prop "Start") <* symbol (Value "VCALENDAR")
+parseCalendar = toCal <$ symbol (Prop "START") <* symbol (Value "VCALENDAR")
                       <*> some parseCalProp <*> some parseEvent
                       <* symbol (Prop "END") <* symbol (Value "VCALENDAR")
 
@@ -123,20 +123,26 @@ addEvent e c = c{getEvents = e:getEvents c}
 zeroCal:: Calendar
 zeroCal = Calendar "" []
 
+--mag ooit weg, als het werkt
+-- TEST testParseCalProp "VERSION:3\n"    -> Just (Version "3")
+testParseCalProp txt= run parseCalProp $ fromJust $ run scanCalendar txt
+
 parseCalProp :: Parser Token CalProp
 parseCalProp  = choice [
    Version . getString <$ symbol (Prop "VERSION") <*> satisfy isValue
   ,ProdId . getString <$ symbol (Prop "PRODID") <*> satisfy isValue
   ]
 
-data CalProp =  ProdId String | Version String
+data CalProp =  ProdId String | Version String deriving (Show)
 
 --mag ooit weg, als het werkt
 testParseEvent :: [Char] -> Maybe Event 
 testParseEvent txt= run parseEvent $ fromJust $ run scanCalendar txt
 
 -- hier werkt het niet.
--- TEST           testScan "START:VEVENT\nUID:lol\nEND:VEVENT\n"      -> Nothing      het scannen lijkt te werken      ghci> testScan -> "START:VEVENT\nUID:lol\nEND:VEVENT\n"Just [Prop "START",Value "VEVENT",Prop "UID",Value "lol",Prop "END",Value "VEVENT"]
+-- TEST 1          testParseEvent "START:VEVENT\nUID:lol\nEND:VEVENT\n"      -> Nothing      het scannen lijkt te werken      ghci> testScan -> "START:VEVENT\nUID:lol\nEND:VEVENT\n"Just [Prop "START",Value "VEVENT",Prop "UID",Value "lol",Prop "END",Value "VEVENT"]
+-- nu miss wel, testen is lastig
+-- TEST 2          testParseEvent "START:VEVENT\nUID:lol\nEND:VEVENT\n"       -> Just (Event {getDtStamp = 00000000T000000, getUid = "lol", getDtStart = 00000000T000000, getDtEnd = 00000000T000000, getDescription = Nothing, getSummary = Nothing, getLocation = Nothing})
 parseEvent:: Parser Token Event
 parseEvent = listToEvent <$ symbol (Prop "START") <* symbol (Value "VEVENT") 
                          <*> many parseProperty 
