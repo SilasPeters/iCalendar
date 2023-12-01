@@ -77,7 +77,8 @@ data Property = DtStamp      DateTime
               | DtEnd        DateTime
               | Description  String
               | Summary      String
-              | Location     String deriving(Show)
+              | Location     String
+  deriving(Show)
 
 isValue :: Token -> Bool
 isValue (Value _) = True
@@ -185,49 +186,29 @@ printCalendar :: Calendar -> String
 printCalendar = undefined
 
 
+--testScanCalendar :: IO()
+--testScanCalendar = do
+--  tekst <- readFile "examples//multiline.ics"
+--  print $ run scanCalendar tekst
+--  return ()
 
 
+--testScan tekst = run scanCalendar tekst
 
--- parseToken :: [Char] -> Parser Char Token
--- parseToken cs = Token <$> token cs
--- pt = parseToken
+--testparseCalendar :: IO()
+--testparseCalendar = do
+--  tekst <- readFile "examples//multiline.ics"
+--  print $ run parseCalendar $ fromJust $ run scanCalendar tekst
+--  return ()
 
--- newline :: Parser Char [Token]
--- newline = empty <$ parseToken "\r\n"
+--testCal :: [Char] -> Maybe Calendar
+--testCal tekst = run parseCalendar $ fromJust $ run scanCalendar tekst
 
--- scanCalendar :: Parser Char [Token]
--- scanCalendar = (++) . singleton <$> pt "BEGIN:VEVENT" <*> newline
+----mag ooit weg, als het werkt
+---- TEST testParseCalProp "VERSION:3\n"    -> Just (Version "3")
+--testParseCalProp txt= run parseCalProp $ fromJust $ run scanCalendar txt
 
--- iets :: Parser Char [Properties] -> Parser Char Properties -> Parser Char [Property]
--- iets = (++) <$> linkerParser <*> rechterParser
-
--- foldl iets
-
--- sequence iets
-
-testScanCalendar :: IO()
-testScanCalendar = do
-  tekst <- readFile "examples//multiline.ics"
-  print $ run scanCalendar tekst
-  return ()
-
-
-testScan tekst = run scanCalendar tekst
-
-testparseCalendar :: IO()
-testparseCalendar = do
-  tekst <- readFile "examples//multiline.ics"
-  print $ run parseCalendar $ fromJust $ run scanCalendar tekst
-  return ()
-
-testCal :: [Char] -> Maybe Calendar
-testCal tekst = run parseCalendar $ fromJust $ run scanCalendar tekst
-
---mag ooit weg, als het werkt
--- TEST testParseCalProp "VERSION:3\n"    -> Just (Version "3")
-testParseCalProp txt= run parseCalProp $ fromJust $ run scanCalendar txt
-
---mag ooit weg, als het werkt
-testParseEvent :: [Char] -> Maybe Event 
-testParseEvent txt= run parseEvent $ fromJust $ run scanCalendar txt
+----mag ooit weg, als het werkt
+--testParseEvent :: [Char] -> Maybe Event 
+--testParseEvent txt= run parseEvent $ fromJust $ run scanCalendar txt
 
