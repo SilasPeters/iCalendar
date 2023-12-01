@@ -7,6 +7,7 @@ import GHC.IO.Encoding (BufferCodec(setState))
 import Data.Char (isUpper, isLetter)
 import Data.Functor.Contravariant (Predicate(getPredicate))
 import Data.Maybe
+import Data.List.Split ( chunksOf )
 
 {-
   event       ::= BEGIN:VEVENT crlf
@@ -183,8 +184,31 @@ recognizeCalendar s = run scanCalendar s >>= run parseCalendar
 
 -- Exercise 8
 printCalendar :: Calendar -> String
-printCalendar = undefined
+printCalendar c = unlines $ map ($ c)
+  [ const "BEGIN:VCALENDAR"
+  , (++) "PRODID:"       . getProdId
+  , (++) "VERSION:"      . getVersion
+  , concatMap printEvent . getEvents
+  , const "END:VCALENDAR" ]
 
+printEvent :: Event -> String -- TODO strip empty lines? (Optional)
+printEvent e = unlines $ concatMap (\x -> chopLine $ x e) 
+  [ const "BEGIN:VEVENT"
+  , (++) "UID:"                         . getUid
+  , (++) "DTSTAMP:"     . printDateTime . getDtStamp
+  ,      printMaybe "SUMMARY:"          . getSummary
+  , (++) "DTSTART:"     . printDateTime . getDtStart
+  , (++) "DTEND:"       . printDateTime . getDtEnd
+  ,      printMaybe "DESCRIPTION:"      . getDescription
+  ,      printMaybe "LOCATION:"         . getLocation
+  , const "END:VEVENT" ]
+
+printMaybe :: String -> Maybe String -> String
+printMaybe prefix (Just a) = prefix ++ a
+printMaybe _      Nothing  = []
+
+chopLine :: String -> [String]
+chopLine cs = take 42 cs : map (' ':) (chunksOf 42 (drop 42 cs))
 
 --testScanCalendar :: IO()
 --testScanCalendar = do

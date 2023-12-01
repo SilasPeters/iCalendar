@@ -98,14 +98,6 @@ parseInt n = foldl1 ((+) . (*10)) <$> parseNDigits n
 run :: Parser a b -> [a] -> Maybe b
 run p as = fst <$> find (null . snd) (parse p as)
 
-
---run :: Parser a b -> [a] -> Maybe b
---run p s = case parse (some p) s of
---        ((xs, _):_) -> Just $ last xs  -- If a non-empty list is returned, everything was parsed until there was nothing left to parse
---        _           -> Nothing  -- If an empty list is returned, this indicates failure or that there was nothing to parse
-
-
-
 -- Exercise 3
 printDateTime :: DateTime -> String
 printDateTime = show
@@ -115,30 +107,38 @@ parsePrint s = printDateTime <$> run parseDateTime s
 
 -- Exercise 5
 checkDateTime :: DateTime -> Bool
-checkDateTime dt = undefined
-
-checkTime :: Time -> Bool
-checkTime t = runHour(hour t) < 13 && runMinute (minute t) < 60 && runSecond(second t) < 60
+checkDateTime dt = checkDate (date dt) && checkTime (time dt)
 
 checkDate :: Date -> Bool
-checkDate date = case runDay(day date) of 
-    d ->  case runMonth(month date) of
-        1 -> d < 32
-        2 -> d < 30
-        3 -> d < 32
-        4 -> d < 31
-        5 -> d < 32
-        6 -> d < 31
-        7 -> d < 32
-        8 -> d < 32
-        9 -> d < 31
-        10 -> d < 32
-        11 -> d < 31
-        12 -> d < 32
-        _ -> False
+checkDate date = checkMonthAndDay date && checkYear (year date)
 
+checkMonthAndDay :: Date -> Bool
+checkMonthAndDay date = let d = runDay (day date) in
+  case runMonth(month date) of
+    1  -> 0 < d && d < 32
+    2  -> 0 < d && d < (if isLeap (year date) then 30 else 29)
+    3  -> 0 < d && d < 32
+    4  -> 0 < d && d < 31
+    5  -> 0 < d && d < 32
+    6  -> 0 < d && d < 31
+    7  -> 0 < d && d < 32
+    8  -> 0 < d && d < 32
+    9  -> 0 < d && d < 31
+    10 -> 0 < d && d < 32
+    11 -> 0 < d && d < 31
+    12 -> 0 < d && d < 32
+    _ -> False
 
+checkYear :: Year -> Bool
+checkYear = (\y -> y > 999 && y < 10000) . runYear
 
+checkTime :: Time -> Bool
+checkTime t = runHour(hour t) < 24 && runMinute (minute t) < 60 && runSecond (second t) < 60
 
-
+isLeap :: Year -> Bool
+isLeap year = let y = runYear year
+                  divisable4   = y `mod` 4   == 0
+                  divisable100 = y `mod` 100 == 0
+                  divisable400 = y `mod` 400 == 0
+               in divisable4 && (not divisable100 || divisable400)
 

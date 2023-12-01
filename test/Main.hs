@@ -27,7 +27,7 @@ instance Show Result where
 main :: IO ()
 main = do
   setNewlineTranslations
-  mainDateTime
+  mainCalendar
 
 mainDateTime :: IO ()
 mainDateTime = interact (printOutput . processCheck . processInput)
