@@ -103,8 +103,13 @@ testparseCalendar = do
   print $ run parseCalendar $ fromJust $ run scanCalendar tekst
   return ()
 
+testCal :: [Char] -> Maybe Calendar
+testCal tekst = run parseCalendar $ fromJust $ run scanCalendar tekst
+
+
+-- TEST      testCal "BEGIN:VCALENDAR\nEND:VCALENDAR\n"
 parseCalendar :: Parser Token Calendar
-parseCalendar = toCal <$ symbol (Prop "START") <* symbol (Value "VCALENDAR")
+parseCalendar = toCal <$ symbol (Prop "BEGIN") <* symbol (Value "VCALENDAR")
                       <*> some parseCalProp <*> some parseEvent
                       <* symbol (Prop "END") <* symbol (Value "VCALENDAR")
 
@@ -143,8 +148,9 @@ testParseEvent txt= run parseEvent $ fromJust $ run scanCalendar txt
 -- TEST 1          testParseEvent "START:VEVENT\nUID:lol\nEND:VEVENT\n"      -> Nothing      het scannen lijkt te werken      ghci> testScan -> "START:VEVENT\nUID:lol\nEND:VEVENT\n"Just [Prop "START",Value "VEVENT",Prop "UID",Value "lol",Prop "END",Value "VEVENT"]
 -- nu miss wel, testen is lastig
 -- TEST 2          testParseEvent "START:VEVENT\nUID:lol\nEND:VEVENT\n"       -> Just (Event {getDtStamp = 00000000T000000, getUid = "lol", getDtStart = 00000000T000000, getDtEnd = 00000000T000000, getDescription = Nothing, getSummary = Nothing, getLocation = Nothing})
+-- rip het is begin niet start
 parseEvent:: Parser Token Event
-parseEvent = listToEvent <$ symbol (Prop "START") <* symbol (Value "VEVENT") 
+parseEvent = listToEvent <$ symbol (Prop "BEGIN") <* symbol (Value "VEVENT") 
                          <*> many parseProperty 
                          <* symbol (Prop "END") <* symbol (Value "VEVENT")
 
