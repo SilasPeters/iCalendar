@@ -8,13 +8,10 @@ import Data.Char (isUpper, isLetter)
 import Data.Functor.Contravariant (Predicate(getPredicate))
 import Data.Maybe
 
---import qualified Data.List as words
-
-
 {-
   event       ::= BEGIN:VEVENT crlf
-                eventprop∗
-                END:VEVENT crlf
+                  eventprop∗
+                  END:VEVENT crlf
   eventprop   ::= dtstamp | uid | dtstart | dtend | description | summary | location
   dtstamp     ::= DTSTAMP:     datetime crlf
   uid         ::= UID:         text     crlf
@@ -36,7 +33,7 @@ import Data.Maybe
 
 -- Exercise 6
 data Calendar = Calendar { getProdId :: String
-                         -- , getVersion :: CalendarVersion -- Constant value
+                         , getVersion :: String
                          , getEvents :: [Event]}
     deriving (Eq, Ord, Show)
 
@@ -50,117 +47,37 @@ data Event = Event { getDtStamp     :: DateTime
     deriving (Eq, Ord, Show)
 
 
-
---
----- Define newtype's to enforce type checks --huh, waarom zou je niet gewoon DateTime & txt kunnen gebruiken?
---newtype DtStamp     = DtStamp DateTime   deriving (Eq, Ord, Show)
---newtype Uid         = Uid String         deriving (Eq, Ord, Show)
---newtype DtStart     = DtStart DateTime   deriving (Eq, Ord, Show)
---newtype DtEnd       = DtEnd DateTime     deriving (Eq, Ord, Show)
---newtype Description = Description String deriving (Eq, Ord, Show)
---newtype Summary     = Summary String     deriving (Eq, Ord, Show)
---newtype Location    = Location String    deriving (Eq, Ord, Show)
-
--- Since 'text' is not just a string, we would like to enforce a typecheck
--- This way, when we define functions which are only intended for 'text's,
--- we can require a Text to be provided instead of a context-dependend String
---newtype Text = Text String deriving (Eq, Ord, Show)
-
 -- Exercise 7
 data Token = Value String | Prop String | DT DateTime deriving (Eq, Ord, Show)
 
-
-
--- werkt alleen als eindigs op \n
 scanCalendar :: Parser Char [Token]
 scanCalendar = foldr insertToken [] <$> many parseToken
 
-testScanCalendar :: IO()
-testScanCalendar = do
-  tekst <- readFile "examples//multiline.ics"
-  print $ run scanCalendar tekst
-  return ()
-
-
-testScan tekst = run scanCalendar tekst
-
-parseToken :: Parser Char Token
-parseToken = choice [parseProp, DT <$> parseDateTime <* token "\n", parseValue]
-
 insertToken :: Token -> [Token] -> [Token]
-insertToken v1@(Value s1) (v2@(Value (' ':s2)):ts) = Value (s1++s2) : ts
+insertToken (Value s1) ((Value (' ':s2)):ts) = Value (s1++s2) : ts -- Concatenate multiline string
 insertToken t ts = t:ts
 
+parseToken :: Parser Char Token
+parseToken = choice [parseProp, parseDT, parseValue] -- Order matters for 'run'
+
+parseDT :: Parser Char Token
+parseDT = DT <$> parseDateTime <* token "\r\n"
+
 parseValue :: Parser Char Token
-parseValue = Value <$> some (satisfy (/= '\n')) <* token "\n"
+parseValue = Value <$> some (satisfy (/= '\r')) <* token "\r\n"
 
 parseProp :: Parser Char Token
 parseProp = Prop <$> many (satisfy isUpper) <* symbol ':'
 
-testparseCalendar :: IO()
-testparseCalendar = do
-  tekst <- readFile "examples//multiline.ics"
-  print $ run parseCalendar $ fromJust $ run scanCalendar tekst
-  return ()
+data CalProp = ProdId String | Version String deriving (Show)
 
-testCal :: [Char] -> Maybe Calendar
-testCal tekst = run parseCalendar $ fromJust $ run scanCalendar tekst
-
-
--- TEST      testCal "BEGIN:VCALENDAR\nEND:VCALENDAR\n"
-parseCalendar :: Parser Token Calendar
-parseCalendar = toCal <$ symbol (Prop "BEGIN") <* symbol (Value "VCALENDAR")
-                      <*> some parseCalProp <*> some parseEvent
-                      <* symbol (Prop "END") <* symbol (Value "VCALENDAR")
-
--- nog niet hier checken of hij valide is, 
-toCal :: [CalProp] -> [Event] -> Calendar
-toCal cps = foldr addEvent (foldl insertCalProp zeroCal cps)
-
-insertCalProp :: Calendar -> CalProp -> Calendar
-insertCalProp c cp = case cp of
-  ProdId id -> c{getProdId = id}
-  Version v -> c --DIT IS NOG NIET AF
-
-addEvent :: Event -> Calendar -> Calendar
-addEvent e c = c{getEvents = e:getEvents c}
-
-zeroCal:: Calendar
-zeroCal = Calendar "" []
-
---mag ooit weg, als het werkt
--- TEST testParseCalProp "VERSION:3\n"    -> Just (Version "3")
-testParseCalProp txt= run parseCalProp $ fromJust $ run scanCalendar txt
-
-parseCalProp :: Parser Token CalProp
-parseCalProp  = choice [
-   Version . getString <$ symbol (Prop "VERSION") <*> satisfy isValue
-  ,ProdId . getString <$ symbol (Prop "PRODID") <*> satisfy isValue
-  ]
-
-data CalProp =  ProdId String | Version String deriving (Show)
-
---mag ooit weg, als het werkt
-testParseEvent :: [Char] -> Maybe Event 
-testParseEvent txt= run parseEvent $ fromJust $ run scanCalendar txt
-
--- hier werkt het niet.
--- TEST 1          testParseEvent "START:VEVENT\nUID:lol\nEND:VEVENT\n"      -> Nothing      het scannen lijkt te werken      ghci> testScan -> "START:VEVENT\nUID:lol\nEND:VEVENT\n"Just [Prop "START",Value "VEVENT",Prop "UID",Value "lol",Prop "END",Value "VEVENT"]
--- nu miss wel, testen is lastig
--- TEST 2          testParseEvent "START:VEVENT\nUID:lol\nEND:VEVENT\n"       -> Just (Event {getDtStamp = 00000000T000000, getUid = "lol", getDtStart = 00000000T000000, getDtEnd = 00000000T000000, getDescription = Nothing, getSummary = Nothing, getLocation = Nothing})
--- rip het is begin niet start
-parseEvent:: Parser Token Event
-parseEvent = listToEvent <$ symbol (Prop "BEGIN") <* symbol (Value "VEVENT") 
-                         <*> many parseProperty 
-                         <* symbol (Prop "END") <* symbol (Value "VEVENT")
-
-data Property =      DtStamp      DateTime
-                   | Uid          String
-                   | DtStart      DateTime
-                   | DtEnd        DateTime
-                   | Description  String
-                   | Summary      String
-                   | Location     String deriving(Show)
+data Property = DtStamp      DateTime
+              | Uid          String
+              | DtStart      DateTime
+              | DtEnd        DateTime
+              | Description  String
+              | Summary      String
+              | Location     String deriving(Show)
 
 isValue :: Token -> Bool
 isValue (Value _) = True
@@ -176,30 +93,55 @@ getString (Value s) = s
 getDate :: Token -> DateTime
 getDate (DT dt) = dt
 
+parseCalendar :: Parser Token Calendar
+parseCalendar = toCal <$ symbol (Prop "BEGIN") <* symbol (Value "VCALENDAR")
+                      <*> some parseCalProp <*> many parseEvent
+                      <* symbol (Prop "END") <* symbol (Value "VCALENDAR")
 
+-- Don't check just yet if the calendar is valid
+toCal :: [CalProp] -> [Event] -> Calendar
+toCal cps = foldr addEvent (foldl insertCalProp zeroCal cps)
+
+insertCalProp :: Calendar -> CalProp -> Calendar
+insertCalProp c cp = case cp of
+  ProdId id -> c{getProdId = id}
+  Version v -> c { getVersion = v }
+
+addEvent :: Event -> Calendar -> Calendar
+addEvent e c = c{getEvents = e:getEvents c}
+
+zeroCal:: Calendar
+zeroCal = Calendar "" "" []
+
+
+parseCalProp :: Parser Token CalProp
+parseCalProp  = choice [
+    Version . getString <$ symbol (Prop "VERSION") <*> satisfy isValue
+  , ProdId  . getString <$ symbol (Prop "PRODID")  <*> satisfy isValue
+  ]
+
+
+listToEvent:: [Property] -> Event
+listToEvent = foldl insertProp zeroEvent
+
+
+parseEvent:: Parser Token Event
+parseEvent = listToEvent <$ symbol (Prop "BEGIN") <* symbol (Value "VEVENT") 
+                         <*> many parseProperty 
+                         <* symbol (Prop "END") <* symbol (Value "VEVENT")
 
 testparseProperty tekst = fromJust $ run scanCalendar tekst
 
---mogelijk niet compleet, 
---werkt op UID "testparseProperty "UID:lol\n" -> [Prop "UID",Value "lol"]
 parseProperty :: Parser Token Property
 parseProperty = choice [
-   Uid . getString <$ symbol (Prop "UID") <*> satisfy isValue
-  ,Description . getString <$ symbol (Prop "DESCRIPTION") <*> satisfy isValue
-  ,Summary . getString <$ symbol (Prop "SUMMARY") <*> satisfy isValue
-  ,Location . getString <$ symbol (Prop "LOCATION") <*> satisfy isValue
-  ,DtStamp . getDate <$ symbol (Prop "DTSTAMP") <*> satisfy isDT
-  ,DtStart . getDate <$ symbol (Prop "DTSTART") <*> satisfy isDT
-  ,DtEnd . getDate <$ symbol (Prop "DTEND") <*> satisfy isDT
+    Uid         . getString <$ symbol (Prop "UID")         <*> satisfy isValue
+  , Description . getString <$ symbol (Prop "DESCRIPTION") <*> satisfy isValue
+  , Summary     . getString <$ symbol (Prop "SUMMARY")     <*> satisfy isValue
+  , Location    . getString <$ symbol (Prop "LOCATION")    <*> satisfy isValue
+  , DtStamp     . getDate   <$ symbol (Prop "DTSTAMP")     <*> satisfy isDT
+  , DtStart     . getDate   <$ symbol (Prop "DTSTART")     <*> satisfy isDT
+  , DtEnd       . getDate   <$ symbol (Prop "DTEND")       <*> satisfy isDT
   ]
-
---data Event = Event { getDtStamp     :: DateTime
---                   , getUid         :: String
---                   , getDtStart     :: DateTime
---                   , getDtEnd       :: DateTime
---                   , getDescription :: Maybe String
---                   , getSummary     :: Maybe String
---                   , getLocation    :: Maybe String }
 
 zeroDate :: Date
 zeroDate = Date (Year 0) (Month 0) (Day 0)
@@ -212,9 +154,6 @@ zeroDT = DateTime zeroDate zeroTime False
 
 zeroEvent :: Event
 zeroEvent = Event zeroDT "" zeroDT zeroDT Nothing Nothing Nothing
-
-listToEvent:: [Property] -> Event
-listToEvent = foldl insertProp zeroEvent
 
 getPropDate :: Property -> DateTime
 getPropDate (DtStamp dt) = dt
@@ -229,7 +168,7 @@ getPropString (Location s) = s
 
 insertProp:: Event -> Property -> Event
 insertProp e p = case p of
-  DtStamp      dt -> e{getDtStamp     = getPropDate p}
+  DtStamp     dt -> e{getDtStamp     = getPropDate p}
   Uid          s -> e{getUid         = getPropString p}
   DtStart     dt -> e{getDtStart     = getPropDate p}
   DtEnd       dt -> e{getDtEnd       = getPropDate p}
@@ -244,3 +183,51 @@ recognizeCalendar s = run scanCalendar s >>= run parseCalendar
 -- Exercise 8
 printCalendar :: Calendar -> String
 printCalendar = undefined
+
+
+
+
+
+-- parseToken :: [Char] -> Parser Char Token
+-- parseToken cs = Token <$> token cs
+-- pt = parseToken
+
+-- newline :: Parser Char [Token]
+-- newline = empty <$ parseToken "\r\n"
+
+-- scanCalendar :: Parser Char [Token]
+-- scanCalendar = (++) . singleton <$> pt "BEGIN:VEVENT" <*> newline
+
+-- iets :: Parser Char [Properties] -> Parser Char Properties -> Parser Char [Property]
+-- iets = (++) <$> linkerParser <*> rechterParser
+
+-- foldl iets
+
+-- sequence iets
+
+testScanCalendar :: IO()
+testScanCalendar = do
+  tekst <- readFile "examples//multiline.ics"
+  print $ run scanCalendar tekst
+  return ()
+
+
+testScan tekst = run scanCalendar tekst
+
+testparseCalendar :: IO()
+testparseCalendar = do
+  tekst <- readFile "examples//multiline.ics"
+  print $ run parseCalendar $ fromJust $ run scanCalendar tekst
+  return ()
+
+testCal :: [Char] -> Maybe Calendar
+testCal tekst = run parseCalendar $ fromJust $ run scanCalendar tekst
+
+--mag ooit weg, als het werkt
+-- TEST testParseCalProp "VERSION:3\n"    -> Just (Version "3")
+testParseCalProp txt= run parseCalProp $ fromJust $ run scanCalendar txt
+
+--mag ooit weg, als het werkt
+testParseEvent :: [Char] -> Maybe Event 
+testParseEvent txt= run parseEvent $ fromJust $ run scanCalendar txt
+
