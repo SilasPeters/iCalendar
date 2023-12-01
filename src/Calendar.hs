@@ -184,21 +184,21 @@ recognizeCalendar s = run scanCalendar s >>= run parseCalendar
 
 -- Exercise 8
 printCalendar :: Calendar -> String
-printCalendar c = unlines $ map ($ c)
+printCalendar c = (++"\r\n") $ customUnlines $ filter (not . null)  $ map ($ c)
   [ const "BEGIN:VCALENDAR"
-  , (++) "PRODID:"       . getProdId
   , (++) "VERSION:"      . getVersion
+  , (++) "PRODID:"       . getProdId
   , concatMap printEvent . getEvents
   , const "END:VCALENDAR" ]
 
-printEvent :: Event -> String -- TODO strip empty lines? (Optional)
-printEvent e = unlines $ concatMap (\x -> chopLine $ x e) 
+printEvent :: Event -> String -- TODO strip empty lines
+printEvent e = customUnlines $ concatMap (filter (not . null) . (\x -> chopLine $ x e))
   [ const "BEGIN:VEVENT"
   , (++) "UID:"                         . getUid
   , (++) "DTSTAMP:"     . printDateTime . getDtStamp
-  ,      printMaybe "SUMMARY:"          . getSummary
   , (++) "DTSTART:"     . printDateTime . getDtStart
   , (++) "DTEND:"       . printDateTime . getDtEnd
+  ,      printMaybe "SUMMARY:"          . getSummary
   ,      printMaybe "DESCRIPTION:"      . getDescription
   ,      printMaybe "LOCATION:"         . getLocation
   , const "END:VEVENT" ]
@@ -209,6 +209,10 @@ printMaybe _      Nothing  = []
 
 chopLine :: String -> [String]
 chopLine cs = take 42 cs : map (' ':) (chunksOf 42 (drop 42 cs))
+
+
+customUnlines :: [String] -> String -- We believe that it is expected of us to use this
+customUnlines = foldl1 (\a x -> a ++ "\r\n" ++ x)
 
 --testScanCalendar :: IO()
 --testScanCalendar = do
